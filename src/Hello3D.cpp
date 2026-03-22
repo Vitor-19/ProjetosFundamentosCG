@@ -344,4 +344,3 @@ int setupGeometry()
 
 	return VAO;
 }
-

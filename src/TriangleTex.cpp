@@ -354,3 +354,4 @@ void drawTriangle(GLuint shaderID, GLuint VAO, vec3 position, vec3 dimensions, f
 																								//  Poligono Preenchido - GL_TRIANGLES
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
+
