@@ -43,5 +43,5 @@ Após a geração, extraia os arquivos baixados e coloque-os nos diretórios cor
 - Copie **`khrplatform.h`** para `include/glad/KHR/`
 - Copie **`glad.c`** para `common/`
 
-🚨 **Sem esses arquivos, a compilação falhará!** É necessário colocar esses arquivos nos diretórios corretos, conforme a orientação acima.
+🚨 **Sem esses arquivos, a compilação falhará!** É necessário colocar esses arquivos nos diretórios corretos, conforme a orientação acima. 
 
