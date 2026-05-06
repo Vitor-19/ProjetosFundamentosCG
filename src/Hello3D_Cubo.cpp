@@ -209,9 +209,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_I) posY += 0.1f;
     if (key == GLFW_KEY_J) posY -= 0.1f;
 
-    //Escala com '-' e '+'
-    if (key == GLFW_KEY_KP_SUBTRACT) scale -= 0.01f;
-    if (key == GLFW_KEY_KP_ADD) scale += 0.01f;
+    //Escala com '-' e '+' ou 'n' e 'm'
+    if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_N) scale -= 0.01f;
+    if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_M) scale += 0.01f;
 }
 
 // Função para compilar os Shaders
