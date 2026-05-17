@@ -119,7 +119,7 @@ int main()
     // vao's
     GLuint vao0 = setupGeometry("../assets/Modelos3D/Cube.obj", nVerticesObj0);
     GLuint vao1 = setupGeometry("../assets/Modelos3D/Suzanne.obj", nVerticesObj1);
-    GLuint vao2 = setupGeometry("../assets/Modelos3D/Donut.obj", nVerticesObj2);
+    GLuint vao2 = setupGeometry("../assets/Modelos3D/Pawn.obj", nVerticesObj2);
 
     // Adicionando ao Vector
     cena.push_back(Object3D(vao0, nVerticesObj0, glm::vec3(-0.6f, 0.0f, 0.0f))); 
