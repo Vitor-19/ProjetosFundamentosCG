@@ -26,13 +26,30 @@ using namespace std;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Struct para armazenar propriedades individuais de cada modelo 3D
+struct Object3D {
+    GLuint VAO;
+    int nVertices;
+    glm::vec3 position;
+    glm::vec3 scale;
+    float rotX, rotY, rotZ; 
+
+    Object3D(GLuint vao, int nVerts, glm::vec3 pos) {
+        VAO = vao;
+        nVertices = nVerts;
+        position = pos;
+        scale = glm::vec3(0.15f); 
+        rotX = rotY = rotZ = 0.0f;
+    }
+};
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Protótipos das funções
 int setupShader();
-int setupGeometry(int &nVertices); // Adicionado parâmetro para retornar n de vértices
+// Função agora recebe o caminho do arquivo OBJ por parâmetro
+GLuint setupGeometry(string path, int &nVertices); 
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 1000, HEIGHT = 1000;
@@ -45,7 +62,6 @@ const GLchar* vertexShaderSource = "#version 450\n"
 "out vec4 finalColor;\n"
 "void main()\n"
 "{\n"
-//...pode ter mais linhas de código aqui!
 "gl_Position = model * vec4(position, 1.0);\n"
 "finalColor = vec4(color, 1.0);\n"
 "}\0";
@@ -59,9 +75,9 @@ const GLchar* fragmentShaderSource = "#version 450\n"
 "color = finalColor;\n"
 "}\n\0";
 
-bool rotateX=false, rotateY=false, rotateZ=false;
-// Var para controle de movimento
-float posX = 0.0f, posY = 0.0f, posZ = 0.0f, scale = 0.2f;
+// Var para controle de objetos na cena
+std::vector<Object3D> cena;
+int objSelecionado = 0; 
 
 // Função MAIN
 int main()
@@ -70,7 +86,6 @@ int main()
     glfwInit();
 
     // Criação da janela GLFW
-    // Atualizado o nome para refletir seu projeto
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Visualizador OBJ -- João Vitor de Mello Lima!", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
@@ -97,76 +112,84 @@ int main()
     // Compilando e buildando o programa de shader
     GLuint shaderID = setupShader();
 
-    // Gerando um buffer para o objeto lido
-    int nVertices;
-    GLuint VAO = setupGeometry(nVertices);
+    //Carregando as geometrias e instanciando os objetos na lista
+
+    int nVerticesObj0, nVerticesObj1, nVerticesObj2;
+    
+    // vao's
+    GLuint vao0 = setupGeometry("../assets/Modelos3D/Cube.obj", nVerticesObj0);
+    GLuint vao1 = setupGeometry("../assets/Modelos3D/Suzanne.obj", nVerticesObj1);
+    GLuint vao2 = setupGeometry("../assets/Modelos3D/Donut.obj", nVerticesObj2);
+
+    // Adicionando ao Vector
+    cena.push_back(Object3D(vao0, nVerticesObj0, glm::vec3(-0.6f, 0.0f, 0.0f))); 
+    cena.push_back(Object3D(vao1, nVerticesObj1, glm::vec3(0.6f, 0.0f, 0.0f)));   
+    cena.push_back(Object3D(vao2, nVerticesObj2, glm::vec3(0.0f, 0.6f, 0.0f)));
+    
+    // Print dos controles
+    cout << "Controles:" << endl;
+    cout << "[TAB] - Muda o obj selecionado" << endl;
+    cout << "[WASD] - Move nos eixos X e Z | [I][J] - Move no eixo Y" << endl;
+    cout << "[X][Y][Z] - Rotaciona nos eixos" << endl;
+    cout << "[-] [+] ou [N] [M] - Altera a escala" << endl;
 
     glUseProgram(shaderID);
-
     GLint modelLoc = glGetUniformLocation(shaderID, "model");
 
     glEnable(GL_DEPTH_TEST);
 
-    // Array com as posições dos múltiplos objetos no espaço 3D
-    glm::vec3 posicoesDosCubos[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 0.6f,  0.6f, 0.0f), 
-        glm::vec3(-0.6f, 0.6f, 0.0f), 
-    };
-    // Automatizar o num do for de criação
-    int numCubos = std::size(posicoesDosCubos);
     // Loop da aplicação - "game loop"
     while (!glfwWindowShouldClose(window))
     {
-        // Checa se houveram eventos de input e chama as funções de callback
         glfwPollEvents();
-
+        // Checa se houveram eventos de input e chama as funções de callback
         // Limpa o buffer de cor e de profundidade
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //cor de fundo
+        glClearColor(0.255f, 0.207f, 0.262f, 1.0f); // cor de fundo (RGBA)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glLineWidth(2); // Reduzido para melhor visualização de malhas complexas
         glPointSize(5);
 
-        float angle = (GLfloat)glfwGetTime();
-
-        // Vincula o VAO
-        glBindVertexArray(VAO);
-
-        // Desenha todos os objetos
-        for(unsigned int i = 0; i < numCubos; i++)
+        // Desenha todos os objetos da lista
+        for(size_t i = 0; i < cena.size(); i++)
         {
+            Object3D& obj = cena[i]; // Pega a referência do objeto atual
+
+            // Vincula o VAO específico do objeto
+            glBindVertexArray(obj.VAO);
+
             glm::mat4 model = glm::mat4(1.0f); 
             
-            // Translação base (movimento da câmera/mundo via teclado)
-            model = glm::translate(model, glm::vec3(posX, posY, posZ));
-            
-            // Translação específica 
-            model = glm::translate(model, posicoesDosCubos[i]);
+            // Translação usando as coordenadas do próprio objeto
+            model = glm::translate(model, obj.position);
 
-            // Escala geral
-            model = glm::scale(model, glm::vec3(scale));
+            // Rotação manual controlada pelo teclado 
+            model = glm::rotate(model, obj.rotX, glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, obj.rotY, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, obj.rotZ, glm::vec3(0.0f, 0.0f, 1.0f));
 
-            // Rotação 
-            float anguloDiferente = angle + (i * 0.5f); 
-            if (rotateX)
-                model = glm::rotate(model, anguloDiferente, glm::vec3(1.0f, 0.0f, 0.0f));
-            else if (rotateY)
-                model = glm::rotate(model, anguloDiferente, glm::vec3(0.0f, 1.0f, 0.0f));
-            else if (rotateZ)
-                model = glm::rotate(model, anguloDiferente, glm::vec3(0.0f, 0.0f, 1.0f));
+            // Escala específica do objeto
+            model = glm::scale(model, obj.scale);
 
             // Envia a matriz model atualizada para o Shader
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-            // 1. Desenha as faces coloridas
-            glDrawArrays(GL_TRIANGLES, 0, nVertices);
+            // Desenha as faces coloridas
+            glDrawArrays(GL_TRIANGLES, 0, obj.nVertices);
 
-            // 2. Desenha os pontos em PRETO
-            glDisableVertexAttribArray(1); // Desliga o buffer de cores
-            glVertexAttrib3f(1, 0.0f, 0.0f, 0.0f); // Seta cor preta fixa
-            glPointSize(10.0f);
-            glDrawArrays(GL_POINTS, 0, nVertices);
+            // Desenha os pontos
+            glDisableVertexAttribArray(1); 
+            
+            // O objeto selecionado fica com pontos azuis, os outros ficam com pontos pretos
+            if (i == objSelecionado) {
+                glVertexAttrib3f(1, 0.0f, 0.0f, 1.0f); // Azul
+                glPointSize(12.0f); // Deixa um pouco maior os pontos do obj selecionado
+            } else {
+                glVertexAttrib3f(1, 0.0f, 0.0f, 0.0f); // Preto
+                glPointSize(10.0f);
+            }
+            
+            glDrawArrays(GL_POINTS, 0, obj.nVertices);
             glEnableVertexAttribArray(1); // Religa para o próximo objeto
         }
 
@@ -176,8 +199,12 @@ int main()
         // Troca os buffers da tela
         glfwSwapBuffers(window);
     }
+    
     // Pede pra OpenGL desalocar os buffers
-    glDeleteVertexArrays(1, &VAO);
+    for(auto& obj : cena) {
+        glDeleteVertexArrays(1, &obj.VAO);
+    }
+
     // Finaliza a execução da GLFW
     glfwTerminate();
     return 0;
@@ -189,38 +216,39 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        rotateX = true;
-        rotateY = false;
-        rotateZ = false;
+    // Evita crashes caso a cena esteja vazia
+    if (cena.empty()) return;
+
+    // Seleção de objeto
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+        objSelecionado = (objSelecionado + 1) % cena.size();
+        cout << "Objeto selecionado: " << objSelecionado << endl;
     }
 
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+    // Pega o objeto escolhido para fazer alterações
+    Object3D& obj = cena[objSelecionado];
+
+    // Agora a rotação está mais controlada, tendo que segurar as teclas para ela acontecer
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) 
     {
-        rotateX = false;
-        rotateY = true;
-        rotateZ = false;
+        // Rotação
+        if (key == GLFW_KEY_X) obj.rotX += 0.1f;
+        if (key == GLFW_KEY_Y) obj.rotY += 0.1f;
+        if (key == GLFW_KEY_Z) obj.rotZ += 0.1f;
+
+        // Translação com WASD e IJ
+        if (key == GLFW_KEY_W) obj.position.z -= 0.1f; 
+        if (key == GLFW_KEY_S) obj.position.z += 0.1f;
+        if (key == GLFW_KEY_A) obj.position.x -= 0.1f;
+        if (key == GLFW_KEY_D) obj.position.x += 0.1f;
+        
+        if (key == GLFW_KEY_I) obj.position.y += 0.1f; 
+        if (key == GLFW_KEY_J) obj.position.y -= 0.1f;
+
+        //Escala com '-' e '+' ou 'n' e 'm'
+        if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_N) obj.scale -= glm::vec3(0.01f);
+        if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_M) obj.scale += glm::vec3(0.01f);
     }
-
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        rotateX = false;
-        rotateY = false;
-        rotateZ = true;
-    }
-    //Movimento com WASD + IJ
-    if (key == GLFW_KEY_W) posZ -= 0.1f;
-    if (key == GLFW_KEY_S) posZ += 0.1f;
-    if (key == GLFW_KEY_A) posX -= 0.1f;
-    if (key == GLFW_KEY_D) posX += 0.1f;
-
-    if (key == GLFW_KEY_I) posY += 0.1f;
-    if (key == GLFW_KEY_J) posY -= 0.1f;
-
-    //Escala com '-' e '+' ou 'n' e 'm'
-    if (key == GLFW_KEY_KP_SUBTRACT || key == GLFW_KEY_N) scale -= 0.01f;
-    if (key == GLFW_KEY_KP_ADD || key == GLFW_KEY_M) scale += 0.01f;
 }
 
 // Função para compilar os Shaders
@@ -332,10 +360,11 @@ vector<GLfloat> loadOBJ(string path)
     file.close();
     return out_data;
 }
-// Função para criar o VAO/VBO a partir do OBJ
-int setupGeometry(int &nVertices)
+
+// Função para criar o VAO/VBO a partir do OBJ recebendo o PATH 
+GLuint setupGeometry(string path, int &nVertices)
 { 
-    vector<GLfloat> vertices = loadOBJ("../assets/Modelos3D/Suzanne.obj"); 
+    vector<GLfloat> vertices = loadOBJ(path); 
     nVertices = vertices.size() / 6; // 6 elementos por vértice (x,y,z,r,g,b)
 
     GLuint VBO, VAO;

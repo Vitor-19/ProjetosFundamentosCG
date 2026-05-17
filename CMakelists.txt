@@ -49,6 +49,8 @@ set(EXERCISES
     SpherePhong
     Hello3D_Cubo
     Cubo_Parse
+    Models3D
+    
    
 )
 
