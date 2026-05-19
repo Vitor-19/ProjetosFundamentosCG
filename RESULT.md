@@ -6,3 +6,6 @@ Atividade 2: Print com 3 cubos instanceados, as demais implementações estão e
 
 Atividade Vivencial 1: Requisitos do enunciado implementados em "Modelos3D.cpp"
 ![alt text](imagens/prints/viv1.png)
+
+Atividade 3: Print da execução com a textura disponibilizada, as implementações estão em "Texture.cpp"
+![alt text](imagens/prints/Texturas.png)
