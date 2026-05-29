@@ -51,6 +51,7 @@ set(EXERCISES
     Cubo_Parse
     Models3D
     Texture
+    Lux
    
 )
 

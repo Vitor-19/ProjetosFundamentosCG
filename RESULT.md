@@ -9,3 +9,6 @@ Atividade Vivencial 1: Requisitos do enunciado implementados em "Modelos3D.cpp"
 
 Atividade 3: Print da execução com a textura disponibilizada, as implementações estão em "Texture.cpp"
 ![alt text](imagens/prints/Texturas.png)
+
+Atividade 4: Print da execução com o Obj Suzanne devidamente iluminado, as impplemenações estão em "Lux.cpp"
+![alt text](imagens/prints/Suzanne_iluminado.png)
