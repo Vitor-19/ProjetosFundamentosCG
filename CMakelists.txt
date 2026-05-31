@@ -52,6 +52,7 @@ set(EXERCISES
     Models3D
     Texture
     Lux
+    Lux3
    
 )
 
