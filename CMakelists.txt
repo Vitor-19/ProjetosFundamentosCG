@@ -53,7 +53,7 @@ set(EXERCISES
     Texture
     Lux
     Lux3
-   
+    Cam
 )
 
 add_compile_options(-Wno-pragmas)

@@ -15,3 +15,7 @@ Atividade 4: Print da execução com o Obj Suzanne devidamente iluminado, as imp
 
 Atividade Vivencial 2: Print executando, implementação de 3 fontes de luz, possibilidade de habilitar e desabilitar (indivudualmente cada luz) e fator de atenuação na parcela de reflexão difusa, assim como outras melhorias em "Lux3.cpp".
 ![alt text](imagens/prints/Lux3.png)
+
+
+Atividade 5: Print executando, a implementação da câmera, e movimentação em "Cam.cpp".
+![alt text](imagens/prints/cam.png)
