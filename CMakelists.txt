@@ -55,6 +55,7 @@ set(EXERCISES
     Lux3
     Cam
     Animation
+    Animation2
 )
 
 add_compile_options(-Wno-pragmas)
